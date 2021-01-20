@@ -13,6 +13,7 @@ type AppState = {
   companies: Company[]
   availableMentors: Mentor[]
   unavailableMentors: Mentor[]
+  displayMode: "mentors" | "companies"
 }
 
 export default class App extends React.Component<AppProps, AppState> {
@@ -24,6 +25,7 @@ export default class App extends React.Component<AppProps, AppState> {
       companies: [],
       availableMentors: [],
       unavailableMentors: [],
+      displayMode: "mentors",
     }
   }
 
@@ -32,6 +34,96 @@ export default class App extends React.Component<AppProps, AppState> {
   getData = () => {
     const { companies, availableMentors, unavailableMentors } = getSchedule()
     this.setState({ companies, availableMentors, unavailableMentors })
+  }
+
+  renderCompanies = () => {
+    const Wrapper = styled("div")``
+
+    const CompanyWrapper = styled("div")`
+      background: ${colors.secondaryColor};
+      color: ${colors.primaryColor};
+      min-height: 340px;
+      width: 420px;
+      margin: 48px auto;
+      position: relative;
+      padding-bottom: 50px;
+    `
+
+    const CompanyTitle = styled("div")`
+      font-size: 24px;
+      text-transform: uppercase;
+      color: white;
+      background: black;
+      padding: 12px;
+      border: 1px solid white;
+      border-bottom: 0;
+    `
+
+    const MeetingText = styled("p")`
+      margin: 10px;
+      font-size: 18px;
+    `
+
+    const BottomDiv = styled("div")`
+      position: absolute;
+      bottom: 0;
+      width: 420px;
+      text-align: center;
+    `
+
+    const Button = styled("button")`
+      font-size: 18px;
+      border: 0;
+      background: ${colors.terciaryColor};
+      color: white;
+      margin: 12px;
+      border-radius: 4px;
+      padding: 6px 20px;
+      font-family: sans-serif;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.6;
+      }
+    `
+
+    return (
+      <Wrapper>
+        {this.renderButtons()}
+        {this.state.companies.map((company: Company) => {
+          const { name } = company
+
+          return (
+            <CompanyWrapper>
+              <CompanyTitle>{name}</CompanyTitle>
+              <div>
+                {company.confirmedMeetings.map((meeting) => {
+                  return (
+                    <MeetingText>
+                      <span>
+                        {meeting.mentorName} - {meeting.day},
+                      </span>{" "}
+                      <b>{meeting.time}</b>
+                    </MeetingText>
+                  )
+                })}
+              </div>
+              <BottomDiv>
+                <Button
+                  onClick={() =>
+                    alert(
+                      "Sorry this functionality is not available in the current price range.\n\nPlease tell HR to upgrade your plan ;)"
+                    )
+                  }
+                >
+                  Send invites
+                </Button>
+              </BottomDiv>
+            </CompanyWrapper>
+          )
+        })}
+      </Wrapper>
+    )
   }
 
   renderMentors = () => {
@@ -71,7 +163,7 @@ export default class App extends React.Component<AppProps, AppState> {
     const Button = styled("button")`
       font-size: 18px;
       border: 0;
-      background: green;
+      background: ${colors.terciaryColor};
       color: white;
       margin: 12px;
       border-radius: 4px;
@@ -91,6 +183,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
     return (
       <Wrapper>
+        {this.renderButtons()}
         {this.state.availableMentors.map((mentor: Mentor) => {
           const { name, day } = mentor
 
@@ -115,7 +208,7 @@ export default class App extends React.Component<AppProps, AppState> {
                 <Button
                   onClick={() =>
                     alert(
-                      "Sorry this functionality is not available in the current price range."
+                      "Sorry this functionality is not available in the current price range.\n\nPlease tell HR to upgrade your plan ;)"
                     )
                   }
                 >
@@ -166,6 +259,62 @@ export default class App extends React.Component<AppProps, AppState> {
     )
   }
 
+  renderButtons = () => {
+    const ActionButton = styled("button")`
+      font-size: 18px;
+      border: 0;
+      background: ${(props: { isActive: boolean }) =>
+        props.isActive ? colors.terciaryColor : colors.primaryColor};
+      color: white;
+      margin: 12px;
+      border-radius: 4px;
+      padding: 6px 20px;
+      font-family: sans-serif;
+      cursor: pointer;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    `
+
+    const Flex = styled("div")`
+      display: flex;
+      justify-content: center;
+    `
+
+    const Span = styled("span")`
+      font-size: 29px;
+      font-weight: 600;
+      margin: 12px 32px;
+    `
+
+    return (
+      <Flex>
+        <ActionButton
+          isActive={this.state.displayMode === "mentors"}
+          onClick={() => this.setState({ displayMode: "mentors" })}
+        >
+          MENTORS
+        </ActionButton>
+        <Span>/</Span>
+        <ActionButton
+          isActive={this.state.displayMode === "companies"}
+          onClick={() => this.setState({ displayMode: "companies" })}
+        >
+          COMPANIES
+        </ActionButton>
+      </Flex>
+    )
+  }
+
+  renderContent = () => {
+    if (this.state.displayMode === "mentors") {
+      return this.renderMentors()
+    } else {
+      return this.renderCompanies()
+    }
+  }
+
   render() {
     const { availableMentors } = this.state
 
@@ -175,7 +324,7 @@ export default class App extends React.Component<AppProps, AppState> {
           <Title>Meeting Scheduler Test</Title>
           {availableMentors.length === 0
             ? this.renderActionPage()
-            : this.renderMentors()}
+            : this.renderContent()}
         </ContentWrapper>
       </Wrapper>
     )
