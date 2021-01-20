@@ -17,6 +17,7 @@ export type CompanyMeeting = {
   mentorName: string
   day: string
   timeSlotIndex: number // 1-24 number, 1 representing the first slot of the day and 24 the last one
+  time: string
 }
 
 export type Company = {

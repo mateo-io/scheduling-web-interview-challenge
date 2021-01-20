@@ -39,7 +39,7 @@ const getFormattedMentorData = (): Mentor[] =>
       // we don't need to execute this if the Mentor hasn't specified a time period available
       if (!!timePeriod) {
         for (let i = 1; i < 13; i++) {
-          const index = timePeriod == "AM" ? i : i + 12
+          const index = timePeriod === "AM" ? i : i + 12
           availableSlots.push(index)
         }
       }
@@ -61,7 +61,7 @@ const getFormattedCompanyData = (): Company[] => {
     const { companies } = mentor
 
     companies.forEach((companyName: string) => {
-      if (companyNames.indexOf(companyName) == -1) {
+      if (companyNames.indexOf(companyName) === -1) {
         companyNames.push(companyName)
       }
     })
@@ -83,7 +83,7 @@ const isCompanyAvailable = (
 ) => {
   const { confirmedMeetings } = company
   const bookedDays = confirmedMeetings.filter(
-    (meeting: CompanyMeeting) => meeting.day == day
+    (meeting: CompanyMeeting) => meeting.day === day
   )
 
   const doesDayExist = bookedDays.length > 0
@@ -127,7 +127,7 @@ const confirmAllMeetingsWereBooked = (
     })
   })
 
-  if (pendingMeetings == 0) {
+  if (pendingMeetings === 0) {
     console.log(`all meetings ${bookedMeetings} were booked successfully! \n`)
     return true
   } else {
@@ -167,10 +167,10 @@ const getSchedule = () => {
       availableSlots.some((slot: number) => {
         const companyObject = Object.assign(
           {},
-          companies.find((company: Company) => companyName == company.name)
+          companies.find((company: Company) => companyName === company.name)
         )
 
-        // this never happens
+        // this never happens - it's just here in order to avoid undefined type warnings
         if (!companyObject || !day) {
           console.log(`this never happens`)
           return companyName
@@ -182,10 +182,24 @@ const getSchedule = () => {
           // mentor confirmed meetings
           confirmedMeetings.push(companyName)
 
+          // if this logic got more complex I'd move it to its own function
+          const startHour = slot < 12 ? 8 : 13
+          const absoluteOffset = slot > 12 ? slot - 12 : slot
+          const offsetInMinutes = (absoluteOffset - 1) * 20
+          const hoursOffset =
+            offsetInMinutes >= 60 ? Math.floor(offsetInMinutes / 60) : 0
+          const minutesOffset = offsetInMinutes % 60
+          const paddedMinutesOffset =
+            String(minutesOffset).length === 1
+              ? `0${minutesOffset}`
+              : minutesOffset
+          const time = `${startHour + hoursOffset}:${paddedMinutesOffset}`
+
           const companyMeeting: CompanyMeeting = {
             mentorName: name,
             day: dayString,
             timeSlotIndex: slot,
+            time,
           }
           const updatedConfirmedMeetings = [
             ...companyObject.confirmedMeetings,
@@ -200,17 +214,18 @@ const getSchedule = () => {
           // replace company in the global array
           if (companyObject) {
             companies = companies.map((company: Company) =>
-              company.name == updatedCompanyObject.name
+              company.name === updatedCompanyObject.name
                 ? updatedCompanyObject
                 : company
             )
           }
 
           // remove the slot from available slots
-          availableSlots = availableSlots.filter((v: number) => v != slot)
+          availableSlots = availableSlots.filter((v: number) => v !== slot)
 
           return true
         }
+        return false
       })
     })
     return { ...mentor, availableSlots }
@@ -221,7 +236,7 @@ const getSchedule = () => {
     const updatedPendingMeetings: string[] = []
 
     mentor.pendingMeetings.forEach((companyName: string) => {
-      if (mentor.confirmedMeetings.indexOf(companyName) == -1) {
+      if (mentor.confirmedMeetings.indexOf(companyName) === -1) {
         // if we can't find a confirmation for the meeting we add it again
         updatedPendingMeetings.push(companyName)
       }
@@ -233,6 +248,8 @@ const getSchedule = () => {
     availableMentors,
     companies
   )
+  // unavailable is perhaps not the best term since they are willing they
+  // just have not expressed their available time slots yet.
   const unavailableMentors = mentors.filter(
     (mentor: Mentor) => mentor.day == null
   )
