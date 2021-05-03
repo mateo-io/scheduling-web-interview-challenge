@@ -13,3 +13,6 @@ I've used a greedy algorithm that starts with the Mentors who have the most book
 ## Technology used
 
 This was created using `create-react-app` with TypeScript. The techonologies I'm most comfortable with and also some very useful ones for displaying data and doing data manipulation.
+
+
+[Demo](https://pensive-swartz-af9540.netlify.app/)
